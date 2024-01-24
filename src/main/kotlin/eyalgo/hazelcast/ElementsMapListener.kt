@@ -7,6 +7,6 @@ import java.util.UUID
 
 class ElementsMapListener : EntryEvictedListener<Key, UUID> {
     override fun entryEvicted(event: EntryEvent<Key, UUID>) {
-        println("Printed to System.out!")
+        println("${event.key} is evicted")
     }
 }

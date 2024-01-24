@@ -9,9 +9,13 @@ import eyalgo.hazelcast.ElementsMapListener
 import eyalgo.model.Key
 import io.kotest.matchers.shouldBe
 import org.hamcrest.CoreMatchers.containsString
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
 import java.util.UUID
 import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit.MILLISECONDS
@@ -19,6 +23,7 @@ import java.util.concurrent.TimeUnit.MINUTES
 import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.random.Random
 
+@TestInstance(PER_CLASS)
 class HazelcastTest {
     private val mapName = "elements"
     private lateinit var hazelcast: HazelcastInstance
@@ -29,10 +34,21 @@ class HazelcastTest {
     @BeforeEach
     fun setUp() {
         val mapConfig = MapConfig(mapName)
-        val config = Config().addMapConfig(mapConfig)
+        val config = Config()
+            .addMapConfig(mapConfig)
         hazelcast = newHazelcastInstance(config)
 
         map = hazelcast.getMap(mapName)
+    }
+
+    @AfterEach
+    fun tearDown() {
+        hazelcast.shutdown()
+    }
+
+    @BeforeAll
+    fun disableHazelcastLogging() {
+        System.setProperty("hazelcast.logging.type", "none")
     }
 
     @Test
@@ -74,7 +90,7 @@ class HazelcastTest {
         Thread.sleep(250)
         map.evict(key)
 
-        output.expect(containsString("System.out!"))
+        output.expect(containsString("$key is evicted"))
     }
 
     @Test
