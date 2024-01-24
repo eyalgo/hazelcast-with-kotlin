@@ -6,6 +6,7 @@ import com.hazelcast.core.Hazelcast.newHazelcastInstance
 import com.hazelcast.core.HazelcastInstance
 import com.hazelcast.map.IMap
 import eyalgo.hazelcast.ElementsMapListener
+import eyalgo.model.Element
 import eyalgo.model.Key
 import io.kotest.matchers.shouldBe
 import org.hamcrest.CoreMatchers.containsString
@@ -16,7 +17,6 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
-import java.util.UUID
 import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeUnit.MINUTES
@@ -30,7 +30,7 @@ class HazelcastTest {
 
     // TODO modify the value to list of elements (add tests)
     // TODO check the documentation regarding serialisation (avoiding it)
-    private lateinit var map: IMap<Key, UUID>
+    private lateinit var map: IMap<Key, Element>
 
     @BeforeEach
     fun setUp() {
@@ -50,6 +50,7 @@ class HazelcastTest {
 
     @BeforeAll
     fun disableHazelcastLogging() {
+        // See [logging configuration](https://docs.hazelcast.com/imdg/4.2/clusters/logging-configuration)
         System.setProperty("hazelcast.logging.type", "none")
     }
 
@@ -144,6 +145,7 @@ class HazelcastTest {
         map[key] shouldBe null
     }
 
-    private fun randomKey(): Key = Key(randomUUID().toString(), Random.nextInt())
-    private fun randomValue(): UUID = randomUUID()
+    private fun randomKey(): Key = Key(randomString(), Random.nextInt())
+    private fun randomValue(): Element = Element(randomString())
+    private fun randomString(): String = randomUUID().toString()
 }
