@@ -29,6 +29,7 @@ class HazelcastTest {
     private lateinit var hazelcast: HazelcastInstance
 
     // TODO modify the value to list of elements (add tests)
+    // TODO check the documentation regarding serialisation (avoiding it)
     private lateinit var map: IMap<Key, UUID>
 
     @BeforeEach
@@ -39,6 +40,7 @@ class HazelcastTest {
         hazelcast = newHazelcastInstance(config)
 
         map = hazelcast.getMap(mapName)
+        map.addEntryListener(ElementsMapListener(), false)
     }
 
     @AfterEach
@@ -60,23 +62,29 @@ class HazelcastTest {
     }
 
     @Test
-    fun `entry is evacuated by TTL`() {
+    @CaptureSystemOutput
+    fun `entry is evacuated by TTL`(output: OutputCapture) {
         val key = randomKey()
         val value = randomValue()
 
         map.put(key, value, 200, MILLISECONDS, 600, MILLISECONDS)
         Thread.sleep(250)
         map[key] shouldBe null
+
+        output.expect(containsString("$key is expired"))
     }
 
     @Test
-    fun `entry is evacuated by Max Idle`() {
+    @CaptureSystemOutput
+    fun `entry is evacuated by Max Idle`(output: OutputCapture) {
         val key = randomKey()
         val value = randomValue()
 
         map.put(key, value, 600, MILLISECONDS, 200, MILLISECONDS)
         Thread.sleep(250)
         map[key] shouldBe null
+
+        output.expect(containsString("$key is expired"))
     }
 
     @Test
@@ -85,12 +93,38 @@ class HazelcastTest {
         val key = randomKey()
         val value = randomValue()
 
-        map.put(key, value, 100, MILLISECONDS, 200, MILLISECONDS)
-        map.addEntryListener(ElementsMapListener(), true)
+        map.put(key, value, 400, MILLISECONDS, 600, MILLISECONDS)
         Thread.sleep(250)
         map.evict(key)
 
         output.expect(containsString("$key is evicted"))
+    }
+
+    @Test
+    @CaptureSystemOutput
+    fun `an action happens when an element is deleted`(output: OutputCapture) {
+        val key = randomKey()
+        val value = randomValue()
+
+        map.put(key, value, 400, MILLISECONDS, 600, MILLISECONDS)
+        Thread.sleep(250)
+        map.delete(key)
+
+        output.expect(containsString("$key is expired"))
+    }
+
+    @Test
+    @CaptureSystemOutput
+    @Disabled("WIP - need to investigate")
+    fun `an action happens when an element is removed`(output: OutputCapture) {
+        val key = randomKey()
+        val value = randomValue()
+
+        map.put(key, value, 400, MILLISECONDS, 600, MILLISECONDS)
+        Thread.sleep(250)
+        map.remove(key)
+
+        output.expect(containsString("$key is removed"))
     }
 
     @Test
