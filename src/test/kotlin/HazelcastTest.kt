@@ -6,6 +6,7 @@ import com.hazelcast.core.Hazelcast.newHazelcastInstance
 import com.hazelcast.core.HazelcastInstance
 import com.hazelcast.map.IMap
 import eyalgo.hazelcast.ElementsMapListener
+import eyalgo.model.Key
 import io.kotest.matchers.shouldBe
 import org.hamcrest.CoreMatchers.containsString
 import org.junit.jupiter.api.BeforeEach
@@ -16,14 +17,14 @@ import java.util.UUID.randomUUID
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeUnit.MINUTES
 import java.util.concurrent.TimeUnit.SECONDS
+import kotlin.random.Random
 
 class HazelcastTest {
     private val mapName = "elements"
     private lateinit var hazelcast: HazelcastInstance
 
-    // TODO modify the key to Element
     // TODO modify the value to list of elements (add tests)
-    private lateinit var map: IMap<UUID, UUID>
+    private lateinit var map: IMap<Key, UUID>
 
     @BeforeEach
     fun setUp() {
@@ -36,16 +37,16 @@ class HazelcastTest {
 
     @Test
     fun `only one entry in the time frame`() {
-        val key = randomUUID()
-        val value = randomUUID()
+        val key = randomKey()
+        val value = randomValue()
         map.put(key, value, 1, MINUTES, 2, MINUTES)
         map[key] shouldBe value
     }
 
     @Test
     fun `entry is evacuated by TTL`() {
-        val key = randomUUID()
-        val value = randomUUID()
+        val key = randomKey()
+        val value = randomValue()
 
         map.put(key, value, 200, MILLISECONDS, 600, MILLISECONDS)
         Thread.sleep(250)
@@ -54,8 +55,8 @@ class HazelcastTest {
 
     @Test
     fun `entry is evacuated by Max Idle`() {
-        val key = randomUUID()
-        val value = randomUUID()
+        val key = randomKey()
+        val value = randomValue()
 
         map.put(key, value, 600, MILLISECONDS, 200, MILLISECONDS)
         Thread.sleep(250)
@@ -65,8 +66,8 @@ class HazelcastTest {
     @Test
     @CaptureSystemOutput
     fun `an action happens when an element is evicted`(output: OutputCapture) {
-        val key = randomUUID()
-        val value = randomUUID()
+        val key = randomKey()
+        val value = randomValue()
 
         map.put(key, value, 100, MILLISECONDS, 200, MILLISECONDS)
         map.addEntryListener(ElementsMapListener(), true)
@@ -79,8 +80,8 @@ class HazelcastTest {
     @Test
     @Disabled("WIP - tests for the eviction ttl")
     fun `Max Idle is updated `() {
-        val key = randomUUID()
-        val value = randomUUID()
+        val key = randomKey()
+        val value = randomValue()
 
 //        map.put(key, value, 500, MINUTES, 600, MILLISECONDS)
         map.put(key, value, 1, MINUTES, 500, SECONDS)
@@ -92,4 +93,7 @@ class HazelcastTest {
         Thread.sleep(220)
         map[key] shouldBe null
     }
+
+    private fun randomKey(): Key = Key(randomUUID().toString(), Random.nextInt())
+    private fun randomValue(): UUID = randomUUID()
 }
