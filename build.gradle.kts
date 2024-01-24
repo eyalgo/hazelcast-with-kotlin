@@ -23,10 +23,27 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
 
     implementation("com.hazelcast:hazelcast:5.3.5")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
+    testImplementation("io.kotest:kotest-assertions-core:5.8.0")
+    testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.4.0")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+
+    group = "verification"
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
 }
 
 java {
     sourceCompatibility = JavaVersion.toVersion("17")
+}
+
+sourceSets {
+    getByName("main").java.srcDirs("src/main/kotlin")
+    getByName("test").java.srcDirs("src/test")
 }
 
 tasks {
