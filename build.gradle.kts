@@ -7,7 +7,6 @@ plugins {
     id("org.jetbrains.kotlin.plugin.allopen") version "1.9.21"
     id("org.jlleitschuh.gradle.ktlint") version "11.5.1"
     id("org.jlleitschuh.gradle.ktlint-idea") version "11.5.0"
-    id("com.google.devtools.ksp") version "1.9.21-1.0.16"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("io.micronaut.application") version "4.2.1"
     id("io.micronaut.aot") version "4.2.1"
@@ -22,8 +21,6 @@ repositories {
 }
 
 dependencies {
-    ksp("io.micronaut:micronaut-http-validation")
-    ksp("io.micronaut.serde:micronaut-serde-processor")
     implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
